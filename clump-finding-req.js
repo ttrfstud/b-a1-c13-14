@@ -25,21 +25,16 @@ read('data', {encoding: 'utf8'}, function (err, data) {
 	var prevFirst = kmResult.first|0;
 	var power = km.power|0;
 	var len = genome.length;
+	var num = kmResult.num;
 
 	for (var i = L; i < len; i++, prevStart++) {
-		console.log(genome.length, genome, i);
 		var newKmer = trim(newKmer, power) * 10 + parseInt(genome[i]);
-
-		console.log(newKmer);
-		var prevFirst = trim(prevFirst, power) * 10 + parseInt(genome[prevStart]);
 
 		if (freqs[prevFirst]) {
 			freqs[prevFirst]--;
 		}
-
-		// If it is already clumping we dont need it
-		if (clumping[newKmer]) 
-			continue;
+		
+		var prevFirst = trim(prevFirst, power) * 10 + parseInt(genome[prevStart]);
 
 		if (freqs[newKmer]) {
 			freqs[newKmer]++;
