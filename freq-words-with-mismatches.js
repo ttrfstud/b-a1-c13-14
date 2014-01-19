@@ -8,6 +8,8 @@ var mismatches = [];
 
 var withMismatchesCount = [];
 
+var powers = [];
+
 read('data', {encoding: 'utf8'}, function (err, data) {
 
 	data = data.toString().split(' ');
@@ -16,33 +18,38 @@ read('data', {encoding: 'utf8'}, function (err, data) {
 	var k = parseInt(data[1], 10) | 0;
 	var mRate = parseInt(data[2], 10) | 0;
 
-
-	var i, j, k;
+	var i;
 
 	var perm, mismatch;
 
 	var actualCount = [];
 	var actual = [];
 
+	i = k;
+
+	var power;
+	while ((power = Math.pow(4, (i-- - 1))) >= 1) {
+		powers.push(power);
+	}
+
+	console.log('powers', powers);
+
 	for (i = 0; i < genome.length - k + 1; i++) {
-		var currentActual = genome.substring(i, i + k)
-		var actualNum = toNum(currentActual);
+		var actualNum = toNum(genome.substring(i, i + k)) | 0;
 		if (!actualCount[actualNum]) {
 			actualCount[actualNum] = 0;
-			actual.push(currentActual);
 		}
 
 		actualCount[actualNum]++;
 	}
 
-	enumerate(k, mRate, actual);
+	enumerate(k, mRate, actualCount, powers);
 
 	var max = -1;
 	for (var perm in permutation) {
 		withMismatchesCount[perm] = 0;
 
 		for (var mismatch in mismatches[perm]) {
-			// console.log('mm', mismatch);
 			withMismatchesCount[perm] += actualCount[mismatch] || 0;
 		}
 
@@ -58,8 +65,6 @@ read('data', {encoding: 'utf8'}, function (err, data) {
 		}
 	}
 
-	console.log('champions ', champions.toString());
-	console.log('champions ', champions.length);
 	champions = champions.map(function (el) {
 		return deNum(el, k);
 	});
@@ -67,16 +72,16 @@ read('data', {encoding: 'utf8'}, function (err, data) {
 	write('out', champions.join(' '));
 });
 
-function enumerate(k, d, actual) {
+function enumerate(k, d, actual, powers) {
 	function enumInternal(str, k) {
 		if (!k) {
 			var perm = toNum(str);
 			permutation[perm] = 1;
 
 			mismatches[perm] = [];
-			for (var i = 0; i < actual.length; i++) {
-				if (distance(str, actual[i]) <= d) {
-					mismatches[perm][toNum(actual[i])] = 1;
+			for (var act in actual) {
+				if (distance(perm, act, powers) <= d) {
+					mismatches[perm][act] = 1;
 				}
 			}
 		} else {
@@ -89,22 +94,30 @@ function enumerate(k, d, actual) {
 	enumInternal('', k);
 }
 
-function distance(str1, str2) {
+function distance(num1, num2, powers) {
+	num2 = num2 | 0;
+
 	var dist = 0;
 
-	for (var i = 0; i < str1.length; i++) {
-		if (str1[i] !== str2[i]) dist++;
+	var rem1, rem2;
+
+	for (var i = 0; i < powers.length; i++) {
+		rem1 = (num1 / powers[i]) | 0;
+		rem2 = (num2 / powers[i]) | 0;
+		if (rem1 !== rem2) dist++;
+		num1 = (num1 % powers[i]) | 0;
+		num2 = (num2 % powers[i]) | 0;
 	}
 
 	return dist;
 }
 
 function toNum(str) {
-	return parseInt(str.replace(/A/g, '0').replace(/T/g, '1').replace(/C/g, '2').replace(/G/g, '3'));
+	return parseInt(str.replace(/A/g, '0').replace(/T/g, '1').replace(/C/g, '2').replace(/G/g, '3'), 4);
 }
 
 function deNum(num, k) {
-	var str = String(num).replace(/0/g, 'A').replace(/1/g, 'T').replace(/2/g, 'C').replace(/3/g, 'G');
+	var str = Number(num).toString(4).toString(4).replace(/0/g, 'A').replace(/1/g, 'T').replace(/2/g, 'C').replace(/3/g, 'G');
 	while (str.length < k)
 		str = 'A' + str;
 
