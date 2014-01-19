@@ -1,1 +1,1 @@
-CCTCCTCCCC GGGGAGGAGG
+{"out":[{"kmers":["CCAGGATCC","CCCGGATCC","CCGGATCCG","CGGATCCGG","GGATCCGGG","GGATCCTGG"],"size":5,"window":{"start":"3764973","end":"3765473"}},{"kmers":["AGCTTCCGG","CCGGAAGCT"],"size":5,"window":{"start":"3764723","end":"3765223"}}],"minPos":[3764973]}
