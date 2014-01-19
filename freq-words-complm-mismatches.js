@@ -11,13 +11,15 @@ var count = [];
 
 var powers = [];
 
+var reverseBank = [];
+
 read('data', {encoding: 'utf8'}, function (err, data) {
 	var start = new Date().getTime();
-	data = data.toString().split(' ');
+	data = data.toString().split('\n');
 
-	var genome = data[0];
-	var k = parseInt(data[1], 10) | 0;
-	var mRate = parseInt(data[2], 10) | 0;
+	var genome = data[0].replace('\r', '');
+	var k = parseInt(data[1].split(' ')[0], 10) | 0;
+	var mRate = parseInt(data[1].split(' ')[1], 10) | 0;
 
 	var i;
 
@@ -47,21 +49,27 @@ read('data', {encoding: 'utf8'}, function (err, data) {
 			mutatesCache[actual] = mutates;
 		}
 		for (var mut in mutates) {
+			var rev = reverse(mut, powers);
+			
 			if (!count[mut]) {
 				count[mut] = 0;
+				count[rev] = 0;
 			}
 
 			count[mut]++;
+			count[rev]++;
 
 			if (count[mut] > max) {
 				max = count[mut];
 				champions = [];
 			}
 
-
 			if (count[mut] == max) {
 				champions[mut] = 1;
+				champions[rev] = 1;
 			}
+
+
 		}
 
 		// console.log('actual', actual);
@@ -90,6 +98,34 @@ read('data', {encoding: 'utf8'}, function (err, data) {
 
 	console.log('Finished in ' + +((new Date().getTime() - start) / 1000) + 'sec');
 });
+
+function reverse(original, powers) {
+	if (reverseBank[original]) {
+		return reverseBank[original];
+	}
+
+	var qs = [];
+
+	var reverse = 0;
+
+	var pattern = original;
+	// deNum(pattern, 4) === 'ATGA' && console.log('pattern b4', deNum(pattern, 4));
+	for (var i = 0; i < powers.length; i++) {
+		qs.push((pattern / powers[i]) | 0);
+		// deNum(pattern, 4) === 'ATGA' && console.log(qs);
+		pattern = pattern % powers[i];
+	}
+
+	// deNum(pattern, 4) === 'ATGA' && console.log(qs.toString());
+	for (i = 0; i < powers.length; i++) {
+		reverse += (3 - qs[i]) * powers[powers.length - i - 1];
+	}
+
+	// deNum(pattern, 4) === 'ATGA' && console.log('reverse', deNum(reverse, 4));
+	
+	reverseBank[original] = reverse;
+ 	return reverse;
+}
 
 function mutate(num, k, powers, k0) {
 	var mutates = [];
@@ -158,11 +194,11 @@ function mutateAt(num, count, powers, i, already, mutates) {
 
 
 function toNum(str) {
-	return parseInt(str.replace(/A/g, '0').replace(/T/g, '1').replace(/C/g, '2').replace(/G/g, '3'), 4);
+	return parseInt(str.replace(/A/g, '0').replace(/C/g, '1').replace(/G/g, '2').replace(/T/g, '3'), 4);
 }
 
 function deNum(num, k) {
-	var str = Number(num).toString(4).replace(/0/g, 'A').replace(/1/g, 'T').replace(/2/g, 'C').replace(/3/g, 'G');
+	var str = Number(num).toString(4).replace(/0/g, 'A').replace(/1/g, 'C').replace(/2/g, 'G').replace(/3/g, 'T');
 	while (str.length < k)
 		str = 'A' + str;
 
