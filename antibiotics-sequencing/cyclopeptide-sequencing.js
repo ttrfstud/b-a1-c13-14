@@ -73,13 +73,13 @@ function consistent(testee, sp) {
 
 	sp = sp.slice(0);
 
-	var lastSubpeptides = testee.slice(0, testee.length - 1).concat(lsp(testee));
+	var subpeptides = sps(testee);
 
 	// console.log('pep', JSON.stringify(testee));
 	// console.log('lsps', JSON.stringify(lastSubpeptides));
-	for (var i = 0; i < lastSubpeptides.length; i++) {
-		if (sp[lastSubpeptides[i]]) {
-			sp[lastSubpeptides[i]]--;
+	for (var i = 0; i < subpeptides.length; i++) {
+		if (sp[subpeptides[i]]) {
+			sp[subpeptides[i]]--;
 		} else {
 			return false;
 		}
@@ -88,23 +88,28 @@ function consistent(testee, sp) {
 	return true;
 }
 
-function lsp(peptide) {
-	var last = peptide[peptide.length - 1];
+function sps(peptide) {
+	var sub = [];
 
-	var lsps = [];
 
 	for (var i = 0; i < peptide.length; i++) {
-		
-		var sum = last;
-		
-		for (var j = peptide.length - 2; j >= i; j--) {
-			sum += peptide[j];
-		}
+		var sum = peptide[i];
+		for (var j = i; j < peptide.length; j++) {
+			if (i !== j) {
+				sum += peptide[j];
+			}
 
-		lsps.push(sum);
+			sub.push(sum);
+		}
 	}
 
-	return lsps;
+	if (peptide.length === 3 && peptide[0] === 97 && peptide[1] === 101 && peptide[2] === 97) {
+		console.log('----');
+		console.log(JSON.stringify(peptide));
+		console.log(JSON.stringify(sub));
+		console.log('----');
+	}
+	return sub.concat(0);
 }
 
 function intList(d) {
