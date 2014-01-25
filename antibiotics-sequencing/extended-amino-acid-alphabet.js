@@ -1,85 +1,84 @@
 var read = require('fs').readFile;
 var write = require('fs').writeFileSync;
 
-read('imt2', {encoding: 'utf8'}, function (e, d) {
+var imt = [];
 
-	var imt = list(d);
+for (var i = 57; i <= 200; i++) imt[i] = 1;
 
-	read('data', {encoding: 'utf8'}, function (e, d) {
-		var spectrum = list(d.split('\n')[0]);
-		var N = parseInt(d.split('\n')[1]);
+read('data', {encoding: 'utf8'}, function (e, d) {
+	var spectrum = list(d.split('\n')[0]);
+	var N = parseInt(d.split('\n')[1]);
 
-		var parentMass = spectrum.length - 1;
+	var parentMass = spectrum.length - 1;
 
-		var leaderboard = [[]];
+	var leaderboard = [[]];
 
-		leaderboard[0].score = 0;
+	leaderboard[0].score = 0;
 
-		var leader = [];
-		var leaders = [];
-		var leaderScore = 0;
-		var nextboard = [];
+	var leader = [];
+	var leaders = [];
+	var leaderScore = 0;
+	var nextboard = [];
 
-		var f = filter(imt, spectrum);
+	var f = filter(imt, spectrum);
 
-		while (leaderboard.length) {
-			leaderboard = expand(leaderboard, f, spectrum);
+	while (leaderboard.length) {
+		leaderboard = expand(leaderboard, f, spectrum);
 
-			// console.log('lb', JSON.stringify(leaderboard));
-			for (var i in leaderboard) {
-				// console.log('contender', JSON.stringify(leaderboard[i]));
-				// console.log('score', leaderboard[i].score);
-				// console.log('spectrum', JSON.stringify(leaderboard[i].spectrum));
-				// console.log('spectrum', JSON.stringify(Object.keys(spectrum)));
-				// console.log('mass', leaderboard[i].mass);
-				// console.log('parentMass', JSON.stringify(parentMass));
+		// console.log('lb', JSON.stringify(leaderboard));
+		for (var i in leaderboard) {
+			// console.log('contender', JSON.stringify(leaderboard[i]));
+			// console.log('score', leaderboard[i].score);
+			// console.log('spectrum', JSON.stringify(leaderboard[i].spectrum));
+			// console.log('spectrum', JSON.stringify(Object.keys(spectrum)));
+			// console.log('mass', leaderboard[i].mass);
+			// console.log('parentMass', JSON.stringify(parentMass));
 
-				if (leaderboard[i].mass > parentMass) continue;
-				if (leaderboard[i].mass === parentMass) {
-					if (leaderboard[i].score > leaderScore) {
-						leaderScore = leaderboard[i].score;
-						leaders = [];
-						leaders.push(leaderboard[i]);
-					}
-
-					if (leaderboard[i].score === leaderScore && !contains(leaders, leaderboard[i])) {
-						leaders.push(leaderboard[i]);
-					}
+			if (leaderboard[i].mass > parentMass) continue;
+			if (leaderboard[i].mass === parentMass) {
+				if (leaderboard[i].score > leaderScore) {
+					leaderScore = leaderboard[i].score;
+					leaders = [];
+					leaders.push(leaderboard[i]);
 				}
 
-
-
-				var nextl, nextls = 0;
-
-				for (var k = 0; k < nextboard.length; k++) {
-					if (nextls < nextboard[k].score) {
-						nextls = nextboard[k].score;
-						nextl = nextboard[k];
-					}
-
+				if (leaderboard[i].score === leaderScore && !contains(leaders, leaderboard[i])) {
+					leaders.push(leaderboard[i]);
 				}
-
-				test3(leaderboard[i]) && console.log(s(leaderboard[i]), 'A1');
-				test3(leaderboard[i]) && console.log(leaderboard[i].score, 'A2');
-				test3(leaderboard[i]) && console.log(JSON.stringify(nextl), 'A3');
-				test3(leaderboard[i]) && console.log(nextls, 'A4');
-
-				// test1(leaderboard[i]) && console.log(s(leaderboard[i]), 'f1');
-				// test1(leaderboard[i]) && console.log(leaderboard[i].score, 'f2');
-				// test1(leaderboard[i]) && console.log(JSON.stringify(nextl), 'f3');
-				// test1(leaderboard[i]) && console.log(nextls, 'f4');
-
-				nextboard.push(leaderboard[i]);
 			}
 
-			leaderboard = cut(nextboard, N);
-			nextboard = [];
+
+
+			var nextl, nextls = 0;
+
+			for (var k = 0; k < nextboard.length; k++) {
+				if (nextls < nextboard[k].score) {
+					nextls = nextboard[k].score;
+					nextl = nextboard[k];
+				}
+
+			}
+
+			test3(leaderboard[i]) && console.log(s(leaderboard[i]), 'A1');
+			test3(leaderboard[i]) && console.log(leaderboard[i].score, 'A2');
+			test3(leaderboard[i]) && console.log(JSON.stringify(nextl), 'A3');
+			test3(leaderboard[i]) && console.log(nextls, 'A4');
+
+			// test1(leaderboard[i]) && console.log(s(leaderboard[i]), 'f1');
+			// test1(leaderboard[i]) && console.log(leaderboard[i].score, 'f2');
+			// test1(leaderboard[i]) && console.log(JSON.stringify(nextl), 'f3');
+			// test1(leaderboard[i]) && console.log(nextls, 'f4');
+
+			nextboard.push(leaderboard[i]);
 		}
 
-		write('out', leaders.map(function (e) { return e.join('-')}).join(' '));
-		// write('out', '\n' + leaders.length, {flag: 'a'});
-		// write('out', '\n' + leaders[0].score, {flag: 'a'});
-	});
+		leaderboard = cut(nextboard, N);
+		nextboard = [];
+	}
+
+	write('out', leaders.map(function (e) { return e.join('-')}).join(' '));
+	// write('out', '\n' + leaders.length, {flag: 'a'});
+	// write('out', '\n' + leaders[0].score, {flag: 'a'});
 });
 
 function contains(a, e) {
