@@ -18,14 +18,11 @@ read('imt2', {encoding: 'utf8'}, function (e, d) {
 		var result = [];
 
 		while(stack.length) {
-			console.log('`````````````````````````');
-			console.log(JSON.stringify(spectrum), 'spectrum');
-			expand(stack);
-			if (stack.length <= 180) console.log(JSON.stringify(stack), 'bifo');
+			expand(stack, spectrum);
 
-			// console.log(JSON.stringify(stack));
-
+			console.log(stack.length);
 			for (var i = 0; i < stack.length; i++) {
+				// if (i % 1000 === 0) console.log(i);
 				if (cyclospectrumIs(stack[i], spectrum)) {
 					result.push(stack[i]);
 					stack.splice(i, 1);
@@ -39,8 +36,6 @@ read('imt2', {encoding: 'utf8'}, function (e, d) {
 				}
 
 			}
-			if (stack.length <= 180) console.log(JSON.stringify(stack), 'afta');
-			console.log('==============================');
 		}
 
 		function out(el) {
@@ -55,8 +50,9 @@ function comp(a, b) {
 	return a > b && 1 || a < b && -1 || 0;
 }
 
-/* Never modify a spectrum under consideration ! */
 function cyclospectrumIs(testee, sp) {
+	return false;
+
 	testee = testee.slice(0);
 	sp = sp.slice(0);
 
@@ -75,7 +71,6 @@ function cyclospectrumIs(testee, sp) {
 			sp.splice(idx, 1);
 		}
 	}
-	console.log('TRU');
 
 	return true;
 }
@@ -84,16 +79,11 @@ function toSpectrum(subpeptides) {
 
 	var noDuplicates = [];
 
-	// console.log('))))))))))))))))))))))))))))))))))))))toSpectrum');
-	console.log(JSON.stringify(subpeptides));
-
 	for (var i = 0; i < subpeptides.length; i++) {
 		if (!contains(noDuplicates, subpeptides[i])) {
 			noDuplicates.push(subpeptides[i]);
 		}
 	}
-
-	// console.log('noDuplicates', JSON.stringify(noDuplicates));
 
 	var spectrum = [];
 
@@ -103,7 +93,6 @@ function toSpectrum(subpeptides) {
 
 	spectrum.sort(comp);
 
-	// console.log(JSON.stringify(spectrum));
 	return spectrum;
 }
 
@@ -131,8 +120,6 @@ function same(a1, a2) {
 }
 
 function toSubpeptides(peptide) {
-	// console.log(';;;;;;;;;;;;;;;;;;;;;;;;;;;;toSubpeptides');
-	// console.log(JSON.stringify(peptide));
 	var subpeptides = [[mass(peptide)]];
 
 	peptide = peptide.slice(1); // deleting 0, temporarily;
@@ -140,8 +127,6 @@ function toSubpeptides(peptide) {
 	for (var i = 1; i < peptide.length; i++) {
 		for (var j = 0; j < peptide.length; j++) {
 			var subpeptide = peptide.slice(j, j + i);
-
-			// console.log(subpeptide);
 
 			if (subpeptide.length !== i) {
 				var diff = i - subpeptide.length;
@@ -154,8 +139,6 @@ function toSubpeptides(peptide) {
 
 	subpeptides.push([0]);
 
-	// console.log(JSON.stringify(subpeptides));
-	// console.log('::::::::::::::::::::::::::::');
 	return subpeptides;
 }
 
@@ -186,13 +169,15 @@ function intList(d) {
 	});
 }
 
-function expand(stack) {
+function expand(stack, spectrum) {
 	var newStack = [];
 
 	for (var i = 0; i < stack.length; i++) {
 		var el = stack[i];
 
 		for (var j = 0; j < imt.length; j++) {
+			if (spectrum.indexOf(imt[j]) === -1) continue;
+
 			newStack.push(el.concat(imt[j]));
 		}	
 	}
