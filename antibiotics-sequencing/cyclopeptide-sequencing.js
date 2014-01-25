@@ -2,7 +2,7 @@ var read = require('fs').readFile;
 var write = require('fs').writeFileSync;
 
 var imt;
-
+var subpepTable = [];
 read('imt2', {encoding: 'utf8'}, function (e, d) {
 	imt = intList(d); 
 
@@ -10,7 +10,11 @@ read('imt2', {encoding: 'utf8'}, function (e, d) {
 		var spectrum = intList(d);
 
 		var stack = [];
-		stack.push([0]);
+		stack.push([]);
+
+		for (var i = 0; i < 20; i++) {
+			subpepTable[(i) * (i - 1) + 2] = i;
+		}
 
 		var f = filter(imt, spectrum);
 
@@ -18,62 +22,89 @@ read('imt2', {encoding: 'utf8'}, function (e, d) {
 		var result = [];
 
 		while(stack.length) {
-			stack = expand(stack, f);
-
-			console.log(stack.length);
+			console.log('');
+			console.log(';;;;;;;;;;;;;;;;;;;;');
+			console.log(JSON.stringify(stack));
+			console.log('-------------------------------------');
+			console.log('');
 			for (var i = 0; i < stack.length; i++) {
-				if (cyclospectrumIs(stack[i], spectrum)) {
-					result.push(stack[i]);
-				} else if (consistent(stack[i], spectrum)) {
-					newStack.push(stack[i]);
-				}
+				for (var j in f) {
+					var newEl = stack[i].concat(j | 0);
+
+					if (!consistent(newEl, spectrum)) {
+						continue;
+					}
+					if (cyclospectrumIs(newEl, spectrum)) {
+						result.push(newEl);
+					} else {
+						newStack.push(newEl);
+					}
+				}	
 			}
 
+			// console.log(JSON.stringify(newStack), 'a');
+			
 			stack = newStack;
 			newStack = [];
 		}
 
+		// console.log('r', JSON.stringify(result));
 		function out(el) { return el.join('-'); }
 		write('out', result.map(out).join(' ')); 
 	});	
 });
 
 function cyclospectrumIs(testee, sp) {
-	sp = sp.slice(0);
-
-	var totalSubpeptides = (testee.length - 1) * 
-	(testee.length - 2) + 1 - testee.length + 1;
-
-	for (var i = 0; i < testee.length; i++) {
-		if (sp[testee[i]]) {
-			sp[testee[i]]--;
-		} else {
-			return false;
-		}
-	}
+	if (!testee.length) return false;
 
 	var count = 0;
+
 	for (var i in sp) {
 		count += sp[i];
 	}
 
-	if (count !== totalSubpeptides) return false;
+	if (subpepTable[count] !== testee.length) return false;
 
 	return true;
 }
 
 function consistent(testee, sp) {
+	if (!testee.length) return true;
+
 	sp = sp.slice(0);
 
-	for (var i = 0; i < testee.length; i++) {
-		if (sp[testee[i]]) {
-			sp[testee[i]]--;
+	var lastSubpeptides = testee.slice(0, testee.length - 1).concat(lsp(testee));
+
+	// console.log('pep', JSON.stringify(testee));
+	// console.log('lsps', JSON.stringify(lastSubpeptides));
+	for (var i = 0; i < lastSubpeptides.length; i++) {
+		if (sp[lastSubpeptides[i]]) {
+			sp[lastSubpeptides[i]]--;
 		} else {
 			return false;
 		}
 	}
 
 	return true;
+}
+
+function lsp(peptide) {
+	var last = peptide[peptide.length - 1];
+
+	var lsps = [];
+
+	for (var i = 0; i < peptide.length; i++) {
+		
+		var sum = last;
+		
+		for (var j = peptide.length - 2; j >= i; j--) {
+			sum += peptide[j];
+		}
+
+		lsps.push(sum);
+	}
+
+	return lsps;
 }
 
 function intList(d) {
@@ -90,20 +121,6 @@ function intList(d) {
 	});
 
 	return list;
-}
-
-function expand(stack, filter) {
-	var newStack = [];
-
-	for (var i = 0; i < stack.length; i++) {
-		var el = stack[i];
-
-		for (var j in filter) {
-			newStack.push(el.concat(j));
-		}	
-	}
-
-	return newStack;
 }
 
 function filter(imt, spectrum) {
