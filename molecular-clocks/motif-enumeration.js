@@ -15,28 +15,40 @@ read('data', {encoding: 'utf8'}, function (e, data) {
 
 	var motifs = [];
 
+	// running: t dna strings
 	for (var i = 0; i < dna.length; i++) {
-		console.log('dfsdfdsf');
+		// t *
+
+		// n-long dna string
 		for (var j = 0; j < dna[i].length; j++) {
+			// n * t
 			var kmer = dna[i].substr(j, k);
 
 			if (kmer.length < k) continue;
 
 			// We have a legitimate kmer
 
+			// This mutate branch has lower order than loop below
+			// because loop below also has mutate
+			// 4^k
 			var mutations = mutate(kmer, d);
 
+			// 4^k 
 			for (var k1 = 0; k1 < mutations.length; k1++) {
 				var mutation = mutations[k1];
 
 				// We have legitimate mutation
 
+				// 4^k
 				var mumu = mutate(mutation, d);
 
 				var present = true;
+
+				// t
 				for (var i1 = 0; i1 < dna.length; i1++) {
 					var pr = false;
 					for (var j1 = 0; j1 < mumu.length; j1++) {
+						// n * t
 						if (dna[i1].indexOf(mumu[j1]) !== -1) {
 							pr = true;
 							break;
@@ -56,6 +68,7 @@ read('data', {encoding: 'utf8'}, function (e, data) {
 		} 
 	}
 
+	// So, running time is n * t * max (4 ^ k, 4 ^ k * max(4 ^ k, n * t)) = 4^k * n * t * max (4 ^ k, n * t)
 	var noDup = [];
 
 	for (var i = 0; i < motifs.length; i++) {
@@ -68,7 +81,7 @@ read('data', {encoding: 'utf8'}, function (e, data) {
 
 	write('out', noDup.join(' '));
 });
-
+	
 function p(msg, obj) {
 	console.log(msg, JSON.stringify(obj));
 }
