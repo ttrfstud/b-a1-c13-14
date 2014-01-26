@@ -9,11 +9,6 @@ module.exports = function () {
 		return a.concat(a[a.length - 1] + e);
 	}, [0])
 
-	// console.log(JSON.stringify(args));
-	// console.log(JSON.stringify(sum));
-	// console.log(JSON.stringify(probs));
-	// console.log(JSON.stringify(cumulative));
-
 	if (cumulative[cumulative.length - 1] !== 1) {
 		cumulative[cumulative.length - 1] = 1;
 	}

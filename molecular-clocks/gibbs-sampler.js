@@ -3,7 +3,7 @@ var write = require('fs').writeFileSync;
 var rand = require('./random');
 var p = require('./log');
 
-read('data', {encoding: 'utf8'}, function (e, d) {
+read('subtle', {encoding: 'utf8'}, function (e, d) {
 	d = d.replace(/\r/g, '').split('\n');
 
 	var k = parseInt(d[0].split(' ')[0]);
@@ -16,8 +16,8 @@ read('data', {encoding: 'utf8'}, function (e, d) {
 	var bestmotifs = [];
 
 	bestmotifs = gibbsSampler(dna, k, t, N);
-	
-	for (var i = 0; i < 19; i++) {
+
+	for (var i = 0; i < 1999; i++) {
 		motifs = gibbsSampler(dna, k, t, N);
 
 		if (score(motifs) < score(bestmotifs)) {
