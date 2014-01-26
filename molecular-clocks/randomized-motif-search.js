@@ -2,10 +2,11 @@ var read = require('fs').readFile;
 var write = require('fs').writeFileSync;
 var p = require('./log');
 
+p = function () {};
 
 var THE_SUN_IS_ALIVE = true;
 
-read('data', {encoding: 'utf8'}, function (e, d) {
+read('subtle', {encoding: 'utf8'}, function (e, d) {
 
 	d = d.replace(/\r/g, '').split('\n');
 
