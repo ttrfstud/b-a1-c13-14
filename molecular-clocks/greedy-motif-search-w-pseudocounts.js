@@ -75,6 +75,12 @@ function formProfile(motifs) {
 		gs /= motifs.length;
 		cs /= motifs.length;
 
+		// More accurately:
+		// as /= (motifs.length + 4);
+		// ts /= (motifs.length + 4);
+		// gs /= (motifs.length + 4);
+		// cs /= (motifs.length + 4);
+
 		profile.push([as, cs, gs, ts]);
 	}
 
