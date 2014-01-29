@@ -13,11 +13,11 @@ pair.fromHash = function (hash) {
 		return hash;
 	}
 
-	console.log('>>from hash', hash);
+	// console.log('>>from hash', hash);
 	var f = parseInt(hash.split('|')[0]);
 	var s = parseInt(hash.split('|')[1]);
-	console.log('from hashing', f);
-	console.log('from hashing', s);
+	// console.log('from hashing', f);
+	// console.log('from hashing', s);
 	return new pair(f, s);
 }
 
@@ -37,34 +37,34 @@ read('data', {encoding: 'utf8'}, function (e,d) {
 	d = d.replace(/\r/g, '').split('\n');
 
 	var graph = makeGraph(d.slice(1));
-	console.log('graph?', graph);
+	// console.log('graph?', graph);
 	var k = d.slice(1)[0].length - 1;
 
 	d = parseInt(d[0]);
 
 	var pp = balance(graph);
 
-	console.log('balanced graph?', graph);
+	// console.log('balanced graph?', graph);
 
 	var cycle = [];
 
-	console.log('graph keys?', Object.keys(graph));
+	// console.log('graph keys?', Object.keys(graph));
 
-	makeCycle(cycle, pair.fromHash(Object.keys(graph)[0]), graph);
+	makeCycle(cycle, pair.fromHash(Object.keys(graph)[0]), graph, k, d);
 
-	console.log('first iteration of cycle', cycle);
+	// console.log('first iteration of cycle', cycle);
 
 	var edge;
 	while(typeof(edge = findUnvisited(graph)) !== 'undefined') {
 		cycle = remake(cycle, edge);
-		makeCycle(cycle, edge, graph);
+		makeCycle(cycle, edge, graph, k, d);
 	}
 
-	console.log(JSON.stringify(cycle));
+	// console.log(JSON.stringify(cycle));
 
 	cycle = breac(cycle, pp);
  
-	console.log(JSON.stringify(cycle));
+	// console.log(JSON.stringify(cycle));
 
 	cycle = cycle.map(function (el) { 
 		return new pair(fromInt(el.k1), fromInt(el.k2));
@@ -80,7 +80,7 @@ read('data', {encoding: 'utf8'}, function (e,d) {
 		presentation += cycle[i].k2.substr(-1);
 	}
 
-	console.log('presentation', presentation);
+	// console.log('presentation', presentation);
 
 	write('out', presentation);
 });
@@ -88,7 +88,7 @@ read('data', {encoding: 'utf8'}, function (e,d) {
 function makeGraph(readPairs) {
 	var graph = [];
 
-	console.log('read pairs', readPairs);
+	// console.log('read pairs', readPairs);
 
 	for (var i = 0; i < readPairs.length; i++) {
 		var rp = readPairs[i];
@@ -109,14 +109,14 @@ function makeGraph(readPairs) {
 			graph[prefix.hash()] = [];
 		}
 
-		console.log('\t>>for', rp);
-		console.log('\t>>prefix', prefix, prefix.hash());
-		console.log('\t>>suffix', suffix, suffix.toString());
+		// console.log('\t>>for', rp);
+		// console.log('\t>>prefix', prefix, prefix.hash());
+		// console.log('\t>>suffix', suffix, suffix.toString());
 
 		graph[prefix.hash()].push(suffix);
 	}
 
-	console.log('\t>>graph', graph);
+	// console.log('\t>>graph', graph);
 	return graph;
 }
 
@@ -159,9 +159,9 @@ function balance(graph) {
 		if (count[i]) {
 			// console.log(i, '@', count[i]);
 			if (count[i] < 0) {
-				console.log('to is', i);
+				// console.log('to is', i);
 				to = pair.fromHash(i);
-				console.log('so to is', to);
+				// console.log('so to is', to);
 				p[i] = -1;
 			} else {
 				from = i;
@@ -172,8 +172,10 @@ function balance(graph) {
 
 	if (!graph[from]) graph[from] = [];
 	graph[from].push(to);
+	graph[from].ignorable = [];
+	graph[from].ignorable.push(to);
 
-	console.log('FROM', from);
+	// console.log('FROM', from);
 
 	if (Object.keys(p).length !== 2) {
 		throw new Error(JSON.stringify(p));
@@ -205,7 +207,7 @@ function findUnvisited(graph) {
 	}
 }
 
-function makeCycle(cycle, edge, graph) {
+function makeCycle(cycle, edge, graph, k, d) {
 	var start = edge;
 	var next = edge;
 	// console.log('\t>>cycle is bifo', JSON.stringify(cycle));
@@ -215,8 +217,7 @@ function makeCycle(cycle, edge, graph) {
 		prev = next;
 		cycle.push(prev);
 		console.log('prev', prev);
-		next = graph[prev.hash()][0];
-		graph[prev.hash()].splice(0, 1);
+		next = chooseNext(graph, cycle, prev, k, d);
 		// console.log('next', typeof next, 'start', typeof start, '==', start === next);
 	} while (!start.equals(next));	
 
@@ -224,6 +225,42 @@ function makeCycle(cycle, edge, graph) {
 	// console.log('\t>>graph is afta', JSON.stringify(graph));
 
 }
+
+function chooseNext(graph, cycle, prev, k, d) {
+	var phash = prev.hash();
+	var next;
+
+	if (cycle.length < d + 2) { // k + d - (k - 1) = d + 1
+		next = graph[phash][0];
+		// console.log('>>@', fromInt(next.k1), '/', fromInt(next.k2));
+		graph[phash].splice(0, 1);
+	} else {
+		var checknode = cycle[cycle.length - d - 2];
+		var k2 = checknode.k2;
+		k2 = fromInt(k2);
+		// console.log('with this one', fromInt(checknode.k1), '/', k2);
+		k2 = k2.substr(0, 1);
+		for (var i = 0; i < graph[phash].length; i++) {
+			var outnode = graph[phash][i];
+			var k1o = outnode.k1;
+			k1o = fromInt(k1o);
+			// console.log('>>@', k1o, '/', fromInt(outnode.k2));
+
+			k1o = k1o.substr(-1);
+	
+			// console.log('k1o', k1o, 'k2', k2);
+
+			if (k1o === k2 || graph[checknode.hash()].ignorable) {
+				next = outnode;
+				graph[phash].splice(i, 1);
+				break;
+			}
+		}
+	}
+
+	return next;
+}
+
 
 function fromInt(dnaInt) {
 	// console.log('\t>>dnaInt', dnaInt);
